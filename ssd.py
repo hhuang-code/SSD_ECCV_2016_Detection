@@ -13,7 +13,8 @@ import pdb
 
 
 class SSD(nn.Module):
-    """Single Shot Multibox Architecture
+    """
+    Single Shot Multibox Architecture
     The network is composed of a base VGG network followed by the added multibox conv layers.
     Each multibox layer branches into
         1) conv2d for class conf scores
@@ -55,7 +56,8 @@ class SSD(nn.Module):
 
 
     def forward(self, x):
-        """Applies network layers and ops on input image(s) x.
+        """
+        Applies network layers and ops on input image(s) x.
 
         Args:
             x: input image or batch of images. Shape: [batch, 3, 300, 300].
@@ -105,16 +107,15 @@ class SSD(nn.Module):
 
         if self.phase == 'test':
             output = self.detect(
-                loc.view(loc.size(0), -1, 4),                   # Location preds
-                self.softmax(conf.view(conf.size(0), -1,
-                             self.num_classes)),                # Confidence preds
-                self.priors.type(type(x.data))                  # Default boxes
+                loc.view(loc.size(0), -1, 4),                                   # Location preds, (batch, Σkmn, 4)
+                self.softmax(conf.view(conf.size(0), -1, self.num_classes)),    # Confidence preds, (batch, Σkmn, c)
+                self.priors.type(type(x.data))                                  # Default boxes, (Σkmn, 4)
             )
         else:
             output = (
-                loc.view(loc.size(0), -1, 4),
-                conf.view(conf.size(0), -1, self.num_classes),
-                self.priors
+                loc.view(loc.size(0), -1, 4),                   # (batch, Σkmn, 4)
+                conf.view(conf.size(0), -1, self.num_classes),  # (batch, Σkmn, c)
+                self.priors                                     # (Σkmn, 4)
             )
 
         return output
@@ -135,10 +136,10 @@ class SSD(nn.Module):
 def vgg(cfg, i, batch_norm = False):    # Build a VGG-16
     layers = []
     in_channels = i
-    for v in cfg:
-        if v == 'M':
+    for v in cfg:   # Inside the loop, same as the original VGG-16 until conv5 (the last conv layer)
+        if v == 'M':    # Max pooling
             layers += [nn.MaxPool2d(kernel_size = 2, stride = 2)]
-        elif v == 'C':
+        elif v == 'C':  # Ceil model
             layers += [nn.MaxPool2d(kernel_size = 2, stride = 2, ceil_mode = True)]
         else:
             conv2d = nn.Conv2d(in_channels, v, kernel_size = 3, padding = 1)
@@ -148,17 +149,17 @@ def vgg(cfg, i, batch_norm = False):    # Build a VGG-16
                 layers += [conv2d, nn.ReLU(inplace = True)]
             in_channels = v
 
-    pool5 = nn.MaxPool2d(kernel_size = 3, stride = 1, padding = 1)
-    conv6 = nn.Conv2d(512, 1024, kernel_size = 3, padding = 6, dilation = 6)
+    pool5 = nn.MaxPool2d(kernel_size = 3, stride = 1, padding = 1)              # Replace fc6
+    conv6 = nn.Conv2d(512, 1024, kernel_size = 3, padding = 6, dilation = 6)    # Replace fc7
     conv7 = nn.Conv2d(1024, 1024, kernel_size = 1)
 
-    layers += [pool5, conv6, nn.ReLU(inplace=True), conv7, nn.ReLU(inplace=True)]
+    layers += [pool5, conv6, nn.ReLU(inplace = True), conv7, nn.ReLU(inplace = True)]
 
     return layers
 
 
 def add_extras(cfg, i, batch_norm = False):
-    # Extra layers added to VGG for feature scaling
+    # Extra eight layers appended to VGG-16 for feature scaling
     layers = []
     in_channels = i
     flag = False
@@ -171,7 +172,7 @@ def add_extras(cfg, i, batch_norm = False):
             flag = not flag
         in_channels = v
 
-    return layers
+    return layers   # Contains eight conv layers
 
 
 # Add two convs (for classification and regression) for eight selected conv layers (from vgg and extra layers)
@@ -183,13 +184,13 @@ def multibox(vgg, extra_layers, cfg, num_classes):
     conf_layers = []
     vgg_source = [21, -2]   # conv4_3, conv7 (fc7)
 
-    for k, v in enumerate(vgg_source):
-        loc_layers += [nn.Conv2d(vgg[v].out_channels, cfg[k] * 4, kernel_size = 3, padding = 1)]
-        conf_layers += [nn.Conv2d(vgg[v].out_channels, cfg[k] * num_classes, kernel_size = 3, padding = 1)]
+    for k, v in enumerate(vgg_source):  # cfg[k] is the number of default boxes (anchors) per location
+        loc_layers += [nn.Conv2d(vgg[v].out_channels, cfg[k] * 4, kernel_size = 3, padding = 1)]            # offsets
+        conf_layers += [nn.Conv2d(vgg[v].out_channels, cfg[k] * num_classes, kernel_size = 3, padding = 1)] # class scores
 
     for k, v in enumerate(extra_layers[1::2], 2):
-        loc_layers += [nn.Conv2d(v.out_channels, cfg[k] * 4, kernel_size = 3, padding = 1)]
-        conf_layers += [nn.Conv2d(v.out_channels, cfg[k] * num_classes, kernel_size = 3, padding = 1)]
+        loc_layers += [nn.Conv2d(v.out_channels, cfg[k] * 4, kernel_size = 3, padding = 1)]             # offsets
+        conf_layers += [nn.Conv2d(v.out_channels, cfg[k] * num_classes, kernel_size = 3, padding = 1)]  # class scores
 
     return vgg, extra_layers, (loc_layers, conf_layers)
 
@@ -203,7 +204,7 @@ extras = {
     '512': [],
 }
 mbox = {
-    '300': [4, 6, 6, 6, 4, 4],  # Number of boxes per feature map location
+    '300': [4, 6, 6, 6, 4, 4],  # Number of default boxes (anchors) per feature map location
     '512': [],
 }
 

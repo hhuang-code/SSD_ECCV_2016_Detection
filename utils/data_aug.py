@@ -15,7 +15,8 @@ def intersect(box_a, box_b):
 
 
 def jaccard_numpy(box_a, box_b):
-    """Compute the jaccard overlap of two sets of boxes.  The jaccard overlap
+    """
+    Compute the jaccard overlap of two sets of boxes.  The jaccard overlap
     is simply the intersection over union of two boxes.
     E.g.:
         A ∩ B / A ∪ B = A ∩ B / (area(A) + area(B) - A ∩ B)
@@ -34,7 +35,8 @@ def jaccard_numpy(box_a, box_b):
 
 
 class Compose(object):
-    """Composes several augmentations together.
+    """
+    Composes several augmentations together.
     Args:
         transforms (List[Transform]): list of transforms to compose.
     Example:
@@ -211,7 +213,8 @@ class ToTensor(object):
 
 
 class RandomSampleCrop(object):
-    """Crop
+    """
+    Crop
     Arguments:
         img (Image): the image being input during training
         boxes (Tensor): the original bounding boxes in pt form
@@ -348,8 +351,8 @@ class RandomMirror(object):
 
 
 class SwapChannels(object):
-    """Transforms a tensorized image by swapping the channels in the order
-     specified in the swap tuple.
+    """
+    Transforms a tensorized image by swapping the channels in the order specified in the swap tuple.
     Args:
         swaps (int triple): final order of channels
             eg: (2, 1, 0)

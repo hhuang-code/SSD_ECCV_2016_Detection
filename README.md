@@ -23,7 +23,18 @@ $ mkdir weights
 $ cd weights
 $ wget https://s3.amazonaws.com/amdegroot-models/vgg16_reducedfc.pth
 ```
-- Run the following bash:
+- Run the following script:
 ```
-bash train.sh
+$ bash train.sh
+```
+
+# Test
+- Download the PyTorch pre-trained SSD300 model on VOC from [here](https://s3.amazonaws.com/amdegroot-models/ssd300_mAP_77.43_v2.pth):
+```
+$ cd weights
+$ wget https://s3.amazonaws.com/amdegroot-models/ssd300_mAP_77.43_v2.pth
+```
+- Run the following script:
+```
+$ bash test.sh
 ```

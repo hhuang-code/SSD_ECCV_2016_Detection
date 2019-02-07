@@ -35,19 +35,19 @@ class PriorBox(object):
         for k, f in enumerate(self.feature_maps):
             # Cartesian product; e.g., if f = 2, product(range(f), repeat = 2) = [(0, 0), (0, 1), (1, 0), (1, 1)]
             for i, j in product(range(f), repeat = 2):  # (i, j) is each location of feature maps
-                f_k = self.image_size / self.steps[k]
+                f_k = self.image_size / self.steps[k]   # Number of grids divided in the original image ~= size of feature map
                 # Unit center x,y
-                cx = (j + 0.5) / f_k    # Scale to almost to (0 ~ 1)
+                cx = (j + 0.5) / f_k    # Index of grid in the original image; scale to almost to (0 ~ 1)
                 cy = (i + 0.5) / f_k
 
                 # Aspect_ratio: 1
                 # rel size: min_size
-                s_k = self.min_sizes[k] / self.image_size   # Scale to almost to (0 ~ 1)
+                s_k = self.min_sizes[k] / self.image_size   # Anchor size; scale to almost to (0 ~ 1)
                 mean += [cx, cy, s_k, s_k]
 
                 # Aspect_ratio: 1
                 # rel size: sqrt(s_k * s_(k+1))
-                s_k_prime = sqrt(s_k * (self.max_sizes[k] / self.image_size))
+                s_k_prime = sqrt(s_k * (self.max_sizes[k] / self.image_size))   # Another anchor size
                 mean += [cx, cy, s_k_prime, s_k_prime]
 
                 # Rest of aspect ratios
@@ -56,7 +56,7 @@ class PriorBox(object):
                     mean += [cx, cy, s_k / sqrt(ar), s_k * sqrt(ar)]
 
         # Back to torch land
-        output = torch.Tensor(mean).view(-1, 4)
+        output = torch.Tensor(mean).view(-1, 4) # shape of (Σ[feat_size^2 * (2 + num_ratios)], 4)
 
         if self.clip:
             output.clamp_(max = 1, min = 0)

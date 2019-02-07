@@ -10,7 +10,8 @@ import pdb
 
 
 class MultiBoxLoss(nn.Module):
-    """SSD Weighted Loss Function
+    """
+    SSD Weighted Loss Function
     Compute Targets:
         1) Produce Confidence Target Indices by matching ground truth boxes
            with (default) 'priorboxes' that have jaccard index > threshold parameter
@@ -47,7 +48,8 @@ class MultiBoxLoss(nn.Module):
         self.variance = cfg['variance']
 
     def forward(self, predictions, targets):
-        """Multibox Loss
+        """
+        Multibox Loss
         Args:
             predictions (tuple): A tuple containing loc preds, conf preds, and prior boxes from SSD net.
                 conf shape: torch.size(batch_size, num_priors, num_classes)
@@ -64,11 +66,11 @@ class MultiBoxLoss(nn.Module):
 
         # Match priors (default boxes) and ground truth boxes
         loc_t = torch.Tensor(num, num_priors, 4)
-        conf_t = torch.LongTensor(num, num_priors)
+        conf_t = torch.LongTensor(num, num_priors)  #
 
         for idx in range(num):  # For each batch
-            truths = targets[idx][:, :-1]
-            labels = targets[idx][:, -1]
+            truths = targets[idx][:, :-1]   # (M, 4); M is the number of ground-truth boxes
+            labels = targets[idx][:, -1]    # (M,)
             defaults = priors
             # Assign each prior boxes with a ground truth label and offsets
             match(self.threshold, truths, defaults, self.variance, labels, loc_t, conf_t, idx)
@@ -79,12 +81,12 @@ class MultiBoxLoss(nn.Module):
 
         loc_t.requires_grad = False
         conf_t.requires_grad = False
-
-        pos = conf_t > 0    # conf_t are labels actually
+        pdb.set_trace()
+        pos = conf_t > 0    # conf_t are label indices actually; shape of (batch, num_priors)
         num_pos = pos.sum(dim = 1, keepdim = True)
 
         # Localization Loss (Smooth L1); shape: [batch,num_priors,4]
-        pos_idx = pos.unsqueeze(pos.dim()).expand_as(loc_data)
+        pos_idx = pos.unsqueeze(pos.dim()).expand_as(loc_data)  # Positive anchors indices
         loc_p = loc_data[pos_idx].view(-1, 4)   # Select positive predicted locs offsets
         loc_t = loc_t[pos_idx].view(-1, 4)      # Select positive ground truth locs  offsets
         loss_l = F.smooth_l1_loss(loc_p, loc_t, size_average = False)
@@ -93,7 +95,7 @@ class MultiBoxLoss(nn.Module):
         batch_conf = conf_data.view(-1, self.num_classes)
         loss_c = log_sum_exp(batch_conf) - batch_conf.gather(1, conf_t.view(-1, 1))
 
-        # Hard Negative Mining
+        # Hard Negative Mining to keep pos-neg sample balance
         loss_c = loss_c.view(num, -1)
         loss_c[pos] = 0  # Filter out pos boxes for now
         _, loss_idx = loss_c.sort(1, descending = True)

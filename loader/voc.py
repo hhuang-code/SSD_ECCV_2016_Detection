@@ -36,7 +36,8 @@ VOC_ROOT = osp.join(HOME, PROJ, 'data/VOCdevkit/')
 
 
 class VOCAnnotationTransform(object):
-    """Transforms a VOC annotation into a Tensor of bbox coords and label index.
+    """
+    Transforms a VOC annotation into a Tensor of bbox coords and label index.
     Initilized with a dictionary lookup of classnames to indexes.
 
     Arguments:
@@ -85,7 +86,8 @@ class VOCAnnotationTransform(object):
 
 
 class VOCDetection(data.Dataset):
-    """VOC Detection Dataset Object
+    """
+    VOC Detection Dataset Object
 
     input is image, target is annotation
 
@@ -152,7 +154,8 @@ class VOCDetection(data.Dataset):
 
 
     def pull_image(self, index):
-        '''Returns the original image object at index in PIL form
+        '''
+        Returns the original image object at index in PIL form
 
         Note: not using self.__getitem__(), as any transformations passed in
         could mess up this functionality.
@@ -167,7 +170,8 @@ class VOCDetection(data.Dataset):
 
 
     def pull_anno(self, index):
-        '''Returns the original annotation of image at index
+        '''
+        Returns the original annotation of image at index
 
         Note: not using self.__getitem__(), as any transformations passed in
         could mess up this functionality.
@@ -185,7 +189,8 @@ class VOCDetection(data.Dataset):
 
 
     def pull_tensor(self, index):
-        '''Returns the original image at an index in tensor form
+        '''
+        Returns the original image at an index in tensor form
 
         Note: not using self.__getitem__(), as any transformations passed in
         could mess up this functionality.
@@ -199,7 +204,8 @@ class VOCDetection(data.Dataset):
 
 
 def detection_collate(batch):
-    """Custom collate fn for dealing with batches of images that have a DIFFERENT
+    """
+    Custom collate fn for dealing with batches of images that have a DIFFERENT
     number of associated object annotations (bounding boxes).
 
     Arguments:

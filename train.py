@@ -42,6 +42,7 @@ parser.add_argument('--saved', default = 'weights/', help = 'directory for savin
 
 parser.add_argument('--cuda', default = True, type = str2bool, help = 'use CUDA to train model')
 parser.add_argument('--visdom', default = True, type = str2bool, help = 'use visdom for loss visualization')
+
 args = parser.parse_args()
 
 
@@ -181,7 +182,8 @@ def train():
 
 
 def adjust_learning_rate(optimizer, gamma, step):
-    """Sets the learning rate to the initial LR decayed by 10 at every specified step
+    """
+    Sets the learning rate to the initial LR decayed by 10 at every specified step
     # Adapted from PyTorch Imagenet example:
     # https://github.com/pytorch/examples/blob/master/imagenet/main.py
     """
